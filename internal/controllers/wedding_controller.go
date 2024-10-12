@@ -1,28 +1,34 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
+	"try-golang/internal/services"
 )
 
 type WeddingController struct {
+	service *services.WeddingService
 }
 
-func CreateWedding(c *gin.Context) {
-	c.JSON(200, "create")
+func NewWeddingController(service *services.WeddingService) *WeddingController {
+	return &WeddingController{service: service}
 }
-func GetWeddings(c *gin.Context) {
-	c.JSON(200, "get all")
+func (ctrl *WeddingController) CreateWedding(c *gin.Context) {
+	response := ctrl.service.CreateWedding()
+	c.JSON(200, response)
 }
-func GetWeddingById(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(200, fmt.Sprintf("get: %s", id))
+func (ctrl *WeddingController) GetWeddings(c *gin.Context) {
+	response := ctrl.service.GetWeddings()
+	c.JSON(200, response)
 }
-func UpdateWedding(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(200, fmt.Sprintf("update: %s", id))
+func (ctrl *WeddingController) GetWeddingById(c *gin.Context) {
+	response := ctrl.service.GetWeddingById(c.Param("id"))
+	c.JSON(200, response)
 }
-func DeleteWedding(c *gin.Context) {
-	id := c.Param("id")
-	c.JSON(200, fmt.Sprintf("delete: %s", id))
+func (ctrl *WeddingController) UpdateWedding(c *gin.Context) {
+	response := ctrl.service.UpdateWedding(c.Param("id"))
+	c.JSON(200, response)
+}
+func (ctrl *WeddingController) DeleteWedding(c *gin.Context) {
+	response := ctrl.service.DeleteWedding(c.Param("id"))
+	c.JSON(200, response)
 }
