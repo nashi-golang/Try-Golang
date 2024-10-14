@@ -1,11 +1,14 @@
 package dto
 
-import "time"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type WeddingDto struct {
-	ID            string    `json:"id"`
+	ID            uuid.UUID `json:"id"`
 	StartDatetime time.Time `json:"start-datetime"`
 	Location      string    `json:"location"`
-	Groom         string    `json:"groom"`
-	Bride         string    `json:"bridge"`
+	Groom         uuid.UUID `json:"groom"`
+	Bride         uuid.UUID `json:"bridge"`
 }
