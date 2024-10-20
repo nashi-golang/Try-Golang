@@ -7,7 +7,6 @@ require (
 	github.com/google/uuid v1.6.0
 	gorm.io/driver/sqlite v1.5.6
 	gorm.io/gorm v1.25.12
-	modernc.org/sqlite v1.33.1
 )
 
 require (

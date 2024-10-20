@@ -89,3 +89,25 @@ func DeleteWedding(service *services.WeddingService) gin.HandlerFunc {
 		c.JSON(http.StatusOK, nil)
 	}
 }
+
+func CreatePeople(service *services.WeddingService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		weddingID, err := uuid.Parse(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "id is not UUID"})
+			return
+		}
+		var peopleDto dto.PeopleDto
+		if err := c.ShouldBindJSON(&peopleDto); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		response, err := service.CreatePeople(weddingID, peopleDto)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, response)
+	}
+}

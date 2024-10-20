@@ -12,6 +12,7 @@ type Wedding struct {
 	Location      string
 	Bride         uuid.UUID
 	Groom         uuid.UUID
+	Peoples       []People `gorm:"foreignKey:WeddingID"`
 }
 
 func (wedding *Wedding) BeforeCreate(tx *gorm.DB) (err error) {

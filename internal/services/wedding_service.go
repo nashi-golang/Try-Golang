@@ -9,18 +9,20 @@ import (
 )
 
 type WeddingService struct {
-	repo *repository.WeddingRepository
+	weddingRepo *repository.WeddingRepository
+	peopleRepo  *repository.PeopleRepository
 }
 
-func NewWeddingService(repo *repository.WeddingRepository) *WeddingService {
+func NewWeddingService(weddingRepo *repository.WeddingRepository, peopleRepo *repository.PeopleRepository) *WeddingService {
 	return &WeddingService{
-		repo: repo,
+		weddingRepo: weddingRepo,
+		peopleRepo:  peopleRepo,
 	}
 }
 
 func (s *WeddingService) CreateWedding(dto dto.WeddingDto) (string, error) {
 	newWedding := NewWeddingFromDto(dto)
-	err := s.repo.CreateWedding(newWedding)
+	err := s.weddingRepo.CreateWedding(newWedding)
 	if err != nil {
 		return "", err
 	}
@@ -28,10 +30,9 @@ func (s *WeddingService) CreateWedding(dto dto.WeddingDto) (string, error) {
 }
 
 func (s *WeddingService) GetWeddings() []dto.WeddingDto {
-
 	var weddingDtos []dto.WeddingDto
 
-	weddings, err := s.repo.GetAllWeddings()
+	weddings, err := s.weddingRepo.GetAllWeddings()
 	if err != nil {
 		return nil
 	}
@@ -43,26 +44,26 @@ func (s *WeddingService) GetWeddings() []dto.WeddingDto {
 	return weddingDtos
 }
 
-func (s *WeddingService) GetWeddingById(id uuid.UUID) (dto.WeddingDto, error) {
+func (s *WeddingService) GetWeddingById(id uuid.UUID) (*dto.WeddingDto, error) {
 
-	wedding, err := s.repo.GetWeddingByID(id)
+	wedding, err := s.weddingRepo.GetWeddingByID(id)
 	if err != nil {
-		return dto.WeddingDto{}, err
+		return nil, err
 	}
 	weddingDto := NewWeddingDtoFromModel(*wedding)
 
-	return *weddingDto, err
+	return weddingDto, err
 }
 
 func (s *WeddingService) UpdateWedding(id uuid.UUID, updatedWeddingData dto.WeddingDto) (string, error) {
-	wedding, err := s.repo.GetWeddingByID(id)
+	wedding, err := s.weddingRepo.GetWeddingByID(id)
 	if err != nil {
 		return "", errors.New("wedding not found")
 	}
 
 	s.updateWeddingFields(wedding, updatedWeddingData)
 
-	err = s.repo.UpdateWedding(wedding)
+	err = s.weddingRepo.UpdateWedding(wedding)
 	if err != nil {
 		return "", errors.New("failed to update wedding")
 	}
@@ -71,7 +72,17 @@ func (s *WeddingService) UpdateWedding(id uuid.UUID, updatedWeddingData dto.Wedd
 }
 
 func (s *WeddingService) DeleteWedding(id uuid.UUID) error {
-	return s.repo.DeleteWedding(id)
+	return s.weddingRepo.DeleteWedding(id)
+}
+
+func (s *WeddingService) CreatePeople(weddingId uuid.UUID, dto dto.PeopleDto) (string, error) {
+	newPeople := NewPeopleFromDto(dto)
+	newPeople.WeddingID = weddingId
+	err := s.peopleRepo.CreatePeople(newPeople)
+	if err != nil {
+		return "", err
+	}
+	return "People created: " + newPeople.ID.String(), nil
 }
 
 func NewWeddingDtoFromModel(wedding models.Wedding) *dto.WeddingDto {
@@ -81,13 +92,37 @@ func NewWeddingDtoFromModel(wedding models.Wedding) *dto.WeddingDto {
 		Location:      wedding.Location,
 		Groom:         wedding.Groom,
 		Bride:         wedding.Bride,
+		Peoples:       NewPeopleDtosFromModels(wedding.Peoples),
 	}
 }
+
 func NewWeddingFromDto(weddingDto dto.WeddingDto) *models.Wedding {
 	return &models.Wedding{
 		StartDateTime: weddingDto.StartDatetime,
 		Location:      weddingDto.Location,
 	}
+}
+
+func NewPeopleFromDto(peopleDto dto.PeopleDto) *models.People {
+	return &models.People{
+		Name:  peopleDto.Name,
+		Phone: peopleDto.Phone,
+	}
+}
+func NewPeopleDtoFromModel(people models.People) *dto.PeopleDto {
+	return &dto.PeopleDto{
+		ID:    people.ID,
+		Name:  people.Name,
+		Phone: people.Phone,
+	}
+}
+
+func NewPeopleDtosFromModels(peoples []models.People) []dto.PeopleDto {
+	result := make([]dto.PeopleDto, len(peoples))
+	for i, p := range peoples {
+		result[i] = *NewPeopleDtoFromModel(p)
+	}
+	return result
 }
 func (s *WeddingService) updateWeddingFields(wedding *models.Wedding, updatedWeddingData dto.WeddingDto) {
 	wedding.StartDateTime = updatedWeddingData.StartDatetime

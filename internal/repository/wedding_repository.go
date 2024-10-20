@@ -10,7 +10,7 @@ type WeddingRepository struct {
 	db *gorm.DB
 }
 
-func NewSQLiteRepository(db *gorm.DB) *WeddingRepository {
+func NewWeddingRepository(db *gorm.DB) *WeddingRepository {
 	return &WeddingRepository{
 		db: db,
 	}
@@ -20,7 +20,7 @@ func (r *WeddingRepository) CreateWedding(wedding *models.Wedding) error {
 }
 func (r *WeddingRepository) GetWeddingByID(id uuid.UUID) (*models.Wedding, error) {
 	var wedding models.Wedding
-	err := r.db.First(&wedding, "id = ?", id).Error
+	err := r.db.Preload("Peoples").First(&wedding, "id = ?", uuid.New()).Error
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +29,7 @@ func (r *WeddingRepository) GetWeddingByID(id uuid.UUID) (*models.Wedding, error
 
 func (r *WeddingRepository) GetAllWeddings() ([]models.Wedding, error) {
 	var weddings []models.Wedding
-	err := r.db.Find(&weddings).Error
+	err := r.db.Preload("Peoples").Find(&weddings).Error
 	if err != nil {
 		return nil, err
 	}
