@@ -3,15 +3,20 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"log"
-	"try-golang/internal/repository"
-
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"log"
 	"try-golang/internal/handlers"
 	"try-golang/internal/models"
+	"try-golang/internal/repository"
 	"try-golang/internal/services"
 )
+
+// @title Try-Gorang
+// @version 1.0
+// @description Try Try Try
+// @host localhost:8999
+// @BasePath /
 
 func main() {
 	router := gin.Default()
@@ -22,22 +27,20 @@ func main() {
 	}
 
 	// 테이블 자동 생성
-	db.AutoMigrate(&models.Wedding{}, &models.People{})
+	db.AutoMigrate(&models.People{}, &models.Wedding{}, &models.Photo{})
 
 	//레포지토리 생성
 	weddingRepository := repository.NewWeddingRepository(db)
 	peopleRepository := repository.NewPeopleRepository(db)
+	photoRepository := repository.NewPhotoRepository(db)
 
 	// 서비스 생성
-	weddingService := services.NewWeddingService(weddingRepository, peopleRepository)
+	weddingService := services.NewWeddingService(weddingRepository, peopleRepository, photoRepository)
 
 	// 컨트롤러 생성 및 서비스 주입
-	router.POST("/wedding", handlers.CreateWedding(weddingService))
-	router.GET("/wedding", handlers.GetWeddings(weddingService))
-	router.GET("/wedding/:id", handlers.GetWeddingById(weddingService))
-	router.PUT("/wedding/:id", handlers.UpdateWedding(weddingService))
-	router.DELETE("/wedding/:id", handlers.DeleteWedding(weddingService))
-	router.POST("/wedding/:id/people", handlers.CreatePeople(weddingService))
+	api := router.Group("/wedding")
+	handlers.RegisterRoutes(api, weddingService)
+
 	// 서버 시작 전에 로그 출력
 	fmt.Println("Server is starting on port 8999")
 

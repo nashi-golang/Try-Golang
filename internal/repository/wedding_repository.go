@@ -18,9 +18,10 @@ func NewWeddingRepository(db *gorm.DB) *WeddingRepository {
 func (r *WeddingRepository) CreateWedding(wedding *models.Wedding) error {
 	return r.db.Create(wedding).Error
 }
+
 func (r *WeddingRepository) GetWeddingByID(id uuid.UUID) (*models.Wedding, error) {
 	var wedding models.Wedding
-	err := r.db.Preload("Peoples").First(&wedding, "id = ?", uuid.New()).Error
+	err := r.db.Preload("Peoples").First(&wedding, "id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +30,10 @@ func (r *WeddingRepository) GetWeddingByID(id uuid.UUID) (*models.Wedding, error
 
 func (r *WeddingRepository) GetAllWeddings() ([]models.Wedding, error) {
 	var weddings []models.Wedding
-	err := r.db.Preload("Peoples").Find(&weddings).Error
+	err := r.db.
+		Preload("Peoples").
+		Preload("Photos").
+		Find(&weddings).Error
 	if err != nil {
 		return nil, err
 	}

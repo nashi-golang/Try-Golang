@@ -12,4 +12,5 @@ type WeddingDto struct {
 	Groom         uuid.UUID   `json:"groom"`
 	Bride         uuid.UUID   `json:"bridge"`
 	Peoples       []PeopleDto `json:"peoples"`
+	Photos        []PhotoDto  `json:"photos"`
 }

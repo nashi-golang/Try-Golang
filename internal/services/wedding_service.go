@@ -11,12 +11,14 @@ import (
 type WeddingService struct {
 	weddingRepo *repository.WeddingRepository
 	peopleRepo  *repository.PeopleRepository
+	photoRepo   *repository.PhotoRepository
 }
 
-func NewWeddingService(weddingRepo *repository.WeddingRepository, peopleRepo *repository.PeopleRepository) *WeddingService {
+func NewWeddingService(weddingRepo *repository.WeddingRepository, peopleRepo *repository.PeopleRepository, photoRepo *repository.PhotoRepository) *WeddingService {
 	return &WeddingService{
 		weddingRepo: weddingRepo,
 		peopleRepo:  peopleRepo,
+		photoRepo:   photoRepo,
 	}
 }
 
@@ -85,6 +87,27 @@ func (s *WeddingService) CreatePeople(weddingId uuid.UUID, dto dto.PeopleDto) (s
 	return "People created: " + newPeople.ID.String(), nil
 }
 
+func (s *WeddingService) CreatePhoto(weddingId uuid.UUID, photoDto dto.PhotoDto) (string, error) {
+	newPhoto := NewPhotoFromDto(photoDto)
+	newPhoto.WeddingID = weddingId
+	err := s.photoRepo.CreatePhoto(newPhoto)
+	if err != nil {
+		return "", err
+	}
+	return "Photo created: " + newPhoto.ID.String(), nil
+}
+
+func (s *WeddingService) GetPhotosByWeddingId(weddingId uuid.UUID) ([]dto.PhotoDto, error) {
+	var photos []models.Photo
+	var photoDtos []dto.PhotoDto
+	photos, err := s.photoRepo.GetPhotosByWeddingID(weddingId)
+	if err != nil {
+		return photoDtos, err
+	}
+	photoDtos = NewPhotoDtoListFromModels(photos)
+	return photoDtos, nil
+}
+
 func NewWeddingDtoFromModel(wedding models.Wedding) *dto.WeddingDto {
 	return &dto.WeddingDto{
 		ID:            wedding.ID,
@@ -93,6 +116,7 @@ func NewWeddingDtoFromModel(wedding models.Wedding) *dto.WeddingDto {
 		Groom:         wedding.Groom,
 		Bride:         wedding.Bride,
 		Peoples:       NewPeopleDtosFromModels(wedding.Peoples),
+		Photos:        NewPhotoDtoListFromModels(wedding.Photos),
 	}
 }
 
@@ -124,6 +148,28 @@ func NewPeopleDtosFromModels(peoples []models.People) []dto.PeopleDto {
 	}
 	return result
 }
+
+func NewPhotoFromDto(photoDto dto.PhotoDto) *models.Photo {
+	return &models.Photo{
+		Url:    photoDto.Url,
+		Status: "Not Started",
+	}
+}
+func NewPhotoDtoFromModel(photo models.Photo) *dto.PhotoDto {
+	return &dto.PhotoDto{
+		ID:     photo.ID,
+		Url:    photo.Url,
+		Status: photo.Status,
+	}
+}
+func NewPhotoDtoListFromModels(photos []models.Photo) []dto.PhotoDto {
+	result := make([]dto.PhotoDto, len(photos))
+	for i, p := range photos {
+		result[i] = *NewPhotoDtoFromModel(p)
+	}
+	return result
+}
+
 func (s *WeddingService) updateWeddingFields(wedding *models.Wedding, updatedWeddingData dto.WeddingDto) {
 	wedding.StartDateTime = updatedWeddingData.StartDatetime
 	wedding.Location = updatedWeddingData.Location
