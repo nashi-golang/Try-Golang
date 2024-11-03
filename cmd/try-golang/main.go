@@ -36,10 +36,11 @@ func main() {
 
 	// 서비스 생성
 	weddingService := services.NewWeddingService(weddingRepository, peopleRepository, photoRepository)
+	imageService := services.NewImageService(photoRepository)
 
 	// 컨트롤러 생성 및 서비스 주입
 	api := router.Group("/wedding")
-	handlers.RegisterRoutes(api, weddingService)
+	handlers.RegisterRoutes(api, weddingService, imageService)
 
 	// 서버 시작 전에 로그 출력
 	fmt.Println("Server is starting on port 8999")

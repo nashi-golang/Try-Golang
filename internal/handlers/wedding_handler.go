@@ -149,13 +149,33 @@ func GetPhotosByWeddingId(service *services.WeddingService) gin.HandlerFunc {
 		c.JSON(http.StatusOK, response)
 	}
 }
-func RegisterRoutes(router *gin.RouterGroup, service *services.WeddingService) {
-	router.POST("", CreateWedding(service))
-	router.GET("", GetWeddings(service))
-	router.GET("/:id", GetWeddingById(service))
-	router.PUT("/:id", UpdateWedding(service))
-	router.DELETE("/:id", DeleteWedding(service))
-	router.POST("/:id/people", CreatePeople(service))
-	router.POST("/:id/photo", CreatePhoto(service))
-	router.GET("/:id/photo", GetPhotosByWeddingId(service))
+func PostPhotosProcessStartByWeddingId(service *services.ImageService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		weddingID, err := uuid.Parse(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "id is not UUID"})
+			return
+		}
+		err = service.StartPhotoProcessAllImage(weddingID)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Wedding not found"})
+			return
+		}
+		c.JSON(http.StatusOK, "Process Start")
+	}
+
+}
+
+func RegisterRoutes(router *gin.RouterGroup, weddingService *services.WeddingService, imageService *services.ImageService) {
+	router.POST("", CreateWedding(weddingService))
+	router.GET("", GetWeddings(weddingService))
+	router.GET("/:id", GetWeddingById(weddingService))
+	router.PUT("/:id", UpdateWedding(weddingService))
+	router.DELETE("/:id", DeleteWedding(weddingService))
+	router.POST("/:id/people", CreatePeople(weddingService))
+	router.POST("/:id/photo", CreatePhoto(weddingService))
+	router.GET("/:id/photo", GetPhotosByWeddingId(weddingService))
+	router.POST("/:id/photo/process", PostPhotosProcessStartByWeddingId(imageService))
+
 }

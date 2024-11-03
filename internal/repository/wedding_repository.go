@@ -21,7 +21,10 @@ func (r *WeddingRepository) CreateWedding(wedding *models.Wedding) error {
 
 func (r *WeddingRepository) GetWeddingByID(id uuid.UUID) (*models.Wedding, error) {
 	var wedding models.Wedding
-	err := r.db.Preload("Peoples").First(&wedding, "id = ?", id).Error
+	err := r.db.
+		Preload("Peoples").
+		Preload("Photos").
+		First(&wedding, "id = ?", id).Error
 	if err != nil {
 		return nil, err
 	}
