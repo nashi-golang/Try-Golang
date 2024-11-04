@@ -10,7 +10,7 @@ import (
 )
 
 type ImageService struct {
-	photoRepo *repository.PhotoRepository
+	photoRepo repository.PhotoRepository
 }
 type ImageTask struct {
 	Photo  models.Photo
@@ -22,7 +22,7 @@ type StatusUpdate struct {
 	Status string
 }
 
-func NewImageService(photoRepo *repository.PhotoRepository) *ImageService {
+func NewImageService(photoRepo repository.PhotoRepository) *ImageService {
 	return &ImageService{
 		photoRepo: photoRepo,
 	}

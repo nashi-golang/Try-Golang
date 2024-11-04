@@ -9,12 +9,12 @@ import (
 )
 
 type WeddingService struct {
-	weddingRepo *repository.WeddingRepository
-	peopleRepo  *repository.PeopleRepository
-	photoRepo   *repository.PhotoRepository
+	weddingRepo repository.WeddingRepository
+	peopleRepo  repository.PeopleRepository
+	photoRepo   repository.PhotoRepository
 }
 
-func NewWeddingService(weddingRepo *repository.WeddingRepository, peopleRepo *repository.PeopleRepository, photoRepo *repository.PhotoRepository) *WeddingService {
+func NewWeddingService(weddingRepo repository.WeddingRepository, peopleRepo repository.PeopleRepository, photoRepo repository.PhotoRepository) *WeddingService {
 	return &WeddingService{
 		weddingRepo: weddingRepo,
 		peopleRepo:  peopleRepo,

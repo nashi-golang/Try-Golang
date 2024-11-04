@@ -7,20 +7,29 @@ import (
 	"try-golang/internal/models"
 )
 
-type PhotoRepository struct {
+type PhotoRepository interface {
+	CreatePhoto(Photo *models.Photo) error
+	GetAllPhotos() ([]models.Photo, error)
+	GetPhotosByWeddingID(weddingId uuid.UUID) ([]models.Photo, error)
+	UpdatePhoto(Photo *models.Photo) error
+	UpdatePhotos(Photo []models.Photo) error
+	DeletePhoto(id uuid.UUID) error
+}
+
+type photoRepositoryImpl struct {
 	db *gorm.DB
 }
 
-func NewPhotoRepository(db *gorm.DB) *PhotoRepository {
-	return &PhotoRepository{
+func NewPhotoRepository(db *gorm.DB) PhotoRepository {
+	return &photoRepositoryImpl{
 		db: db,
 	}
 }
-func (r *PhotoRepository) CreatePhoto(Photo *models.Photo) error {
+func (r *photoRepositoryImpl) CreatePhoto(Photo *models.Photo) error {
 	return r.db.Create(Photo).Error
 }
 
-func (r *PhotoRepository) GetPhotosByWeddingID(weddingId uuid.UUID) ([]models.Photo, error) {
+func (r *photoRepositoryImpl) GetPhotosByWeddingID(weddingId uuid.UUID) ([]models.Photo, error) {
 	var wedding models.Wedding
 
 	if err := r.db.Preload("Photos").First(&wedding, "id = ?", weddingId).Error; err != nil {
@@ -28,7 +37,7 @@ func (r *PhotoRepository) GetPhotosByWeddingID(weddingId uuid.UUID) ([]models.Ph
 	}
 	return wedding.Photos, nil
 }
-func (r *PhotoRepository) GetPendingPhotosByWeddingID(weddingId uuid.UUID) ([]models.Photo, error) {
+func (r *photoRepositoryImpl) GetPendingPhotosByWeddingID(weddingId uuid.UUID) ([]models.Photo, error) {
 	var wedding models.Wedding
 
 	if err := r.db.Preload("Photos", "status = ?", "Not Started").
@@ -39,7 +48,7 @@ func (r *PhotoRepository) GetPendingPhotosByWeddingID(weddingId uuid.UUID) ([]mo
 	return wedding.Photos, nil
 }
 
-func (r *PhotoRepository) GetAllPhotos() ([]models.Photo, error) {
+func (r *photoRepositoryImpl) GetAllPhotos() ([]models.Photo, error) {
 	var Photos []models.Photo
 	err := r.db.Preload("Peoples").Find(&Photos).Error
 	if err != nil {
@@ -48,11 +57,11 @@ func (r *PhotoRepository) GetAllPhotos() ([]models.Photo, error) {
 	return Photos, nil
 }
 
-func (r *PhotoRepository) UpdatePhoto(Photo *models.Photo) error {
+func (r *photoRepositoryImpl) UpdatePhoto(Photo *models.Photo) error {
 	return r.db.Save(Photo).Error
 }
 
-func (r *PhotoRepository) UpdatePhotos(photos []models.Photo) error {
+func (r *photoRepositoryImpl) UpdatePhotos(photos []models.Photo) error {
 	if len(photos) == 0 {
 		return nil // 업데이트할 레코드가 없으면 바로 반환
 	}
@@ -89,6 +98,6 @@ func (r *PhotoRepository) UpdatePhotos(photos []models.Photo) error {
 	return nil
 }
 
-func (r *PhotoRepository) DeletePhoto(id uuid.UUID) error {
+func (r *photoRepositoryImpl) DeletePhoto(id uuid.UUID) error {
 	return r.db.Delete(&models.Photo{}, id).Error
 }

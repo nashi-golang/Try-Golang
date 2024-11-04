@@ -6,20 +6,28 @@ import (
 	"try-golang/internal/models"
 )
 
-type WeddingRepository struct {
+type WeddingRepository interface {
+	CreateWedding(wedding *models.Wedding) error
+	GetWeddingByID(id uuid.UUID) (*models.Wedding, error)
+	GetAllWeddings() ([]models.Wedding, error)
+	UpdateWedding(wedding *models.Wedding) error
+	DeleteWedding(id uuid.UUID) error
+}
+
+type weddingRepositoryImpl struct {
 	db *gorm.DB
 }
 
-func NewWeddingRepository(db *gorm.DB) *WeddingRepository {
-	return &WeddingRepository{
+func NewWeddingRepository(db *gorm.DB) WeddingRepository {
+	return &weddingRepositoryImpl{
 		db: db,
 	}
 }
-func (r *WeddingRepository) CreateWedding(wedding *models.Wedding) error {
+func (r *weddingRepositoryImpl) CreateWedding(wedding *models.Wedding) error {
 	return r.db.Create(wedding).Error
 }
 
-func (r *WeddingRepository) GetWeddingByID(id uuid.UUID) (*models.Wedding, error) {
+func (r *weddingRepositoryImpl) GetWeddingByID(id uuid.UUID) (*models.Wedding, error) {
 	var wedding models.Wedding
 	err := r.db.
 		Preload("Peoples").
@@ -31,7 +39,7 @@ func (r *WeddingRepository) GetWeddingByID(id uuid.UUID) (*models.Wedding, error
 	return &wedding, nil
 }
 
-func (r *WeddingRepository) GetAllWeddings() ([]models.Wedding, error) {
+func (r *weddingRepositoryImpl) GetAllWeddings() ([]models.Wedding, error) {
 	var weddings []models.Wedding
 	err := r.db.
 		Preload("Peoples").
@@ -43,10 +51,10 @@ func (r *WeddingRepository) GetAllWeddings() ([]models.Wedding, error) {
 	return weddings, nil
 }
 
-func (r *WeddingRepository) UpdateWedding(wedding *models.Wedding) error {
+func (r *weddingRepositoryImpl) UpdateWedding(wedding *models.Wedding) error {
 	return r.db.Save(wedding).Error
 }
 
-func (r *WeddingRepository) DeleteWedding(id uuid.UUID) error {
+func (r *weddingRepositoryImpl) DeleteWedding(id uuid.UUID) error {
 	return r.db.Delete(&models.Wedding{}, id).Error
 }
